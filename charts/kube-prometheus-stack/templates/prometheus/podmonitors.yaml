@@ -15,6 +15,7 @@ items:
 {{ toYaml .additionalLabels | indent 8 }}
         {{- end }}
     spec:
+      {{- include "servicemonitor.scrapeLimits" . | nindent 6 }}
       podMetricsEndpoints:
 {{ toYaml .podMetricsEndpoints | indent 8 }}
     {{- if .jobLabel }}
@@ -32,6 +33,9 @@ items:
     {{- end }}
     {{- if .sampleLimit }}
       sampleLimit: {{ .sampleLimit }}
+    {{- end }}
+    {{- if .fallbackScrapeProtocol }}
+      fallbackScrapeProtocol: {{ .fallbackScrapeProtocol }}
     {{- end }}
 {{- end }}
 {{- end }}

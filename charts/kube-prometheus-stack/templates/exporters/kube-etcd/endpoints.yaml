@@ -1,4 +1,4 @@
-{{- if and .Values.kubeEtcd.enabled .Values.kubeEtcd.endpoints }}
+{{- if and .Values.kubeEtcd.enabled .Values.kubeEtcd.endpoints .Values.kubernetesServiceMonitors.enabled }}
 apiVersion: v1
 kind: Endpoints
 metadata:
@@ -14,7 +14,7 @@ subsets:
       - ip: {{ . }}
       {{- end }}
     ports:
-      - name: http-metrics
+      - name: {{ .Values.kubeEtcd.serviceMonitor.port }}
         port: {{ .Values.kubeEtcd.service.port }}
         protocol: TCP
 {{- end }}

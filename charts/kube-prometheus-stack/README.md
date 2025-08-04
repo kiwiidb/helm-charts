@@ -1,36 +1,36 @@
 # kube-prometheus-stack
 
-Installs the [kube-prometheus stack](https://github.com/prometheus-operator/kube-prometheus), a collection of Kubernetes manifests, [Grafana](http://grafana.com/) dashboards, and [Prometheus rules](https://prometheus.io/docs/prometheus/latest/configuration/recording_rules/) combined with documentation and scripts to provide easy to operate end-to-end Kubernetes cluster monitoring with [Prometheus](https://prometheus.io/) using the [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator).
+Installs core components of the [kube-prometheus stack](https://github.com/prometheus-operator/kube-prometheus), a collection of Kubernetes manifests, [Grafana](http://grafana.com/) dashboards, and [Prometheus rules](https://prometheus.io/docs/prometheus/latest/configuration/recording_rules/) combined with documentation and scripts to provide easy to operate end-to-end Kubernetes cluster monitoring with [Prometheus](https://prometheus.io/) using the [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator).
 
-See the [kube-prometheus](https://github.com/prometheus-operator/kube-prometheus) README for details about components, dashboards, and alerts.
+See the [kube-prometheus](https://github.com/prometheus-operator/kube-prometheus) readme for details about components, dashboards, and alerts.
 
-_Note: This chart was formerly named `prometheus-operator` chart, now renamed to more clearly reflect that it installs the `kube-prometheus` project stack, within which Prometheus Operator is only one component._
+_Note: This chart was formerly named `prometheus-operator` chart, now renamed to more clearly reflect that it installs the `kube-prometheus` project stack, within which Prometheus Operator is only one component. This chart does not install all components of `kube-prometheus`, notably excluding the Prometheus Adapter and Prometheus black-box exporter._
 
 ## Prerequisites
 
-- Kubernetes 1.16+
+- Kubernetes 1.19+
 - Helm 3+
 
-## Get Helm Repository Info
+## Usage
+
+The chart is distributed as an [OCI Artifact](https://helm.sh/docs/topics/registries/) as well as via a traditional [Helm Repository](https://helm.sh/docs/topics/chart_repository/).
+
+- OCI Artifact: `oci://ghcr.io/prometheus-community/charts/kube-prometheus-stack`
+- Helm Repository: `https://prometheus-community.github.io/helm-charts` with chart `kube-prometheus-stack`
+
+The installation instructions use the OCI registry. Refer to the [`helm repo`]([`helm repo`](https://helm.sh/docs/helm/helm_repo/)) command documentation for information on installing charts via the traditional repository.
+
+### Install Helm Chart
 
 ```console
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-helm repo update
-```
-
-_See [`helm repo`](https://helm.sh/docs/helm/helm_repo/) for command documentation._
-
-## Install Helm Chart
-
-```console
-helm install [RELEASE_NAME] prometheus-community/kube-prometheus-stack
+helm install [RELEASE_NAME] oci://ghcr.io/prometheus-community/charts/kube-prometheus-stack
 ```
 
 _See [configuration](#configuration) below._
 
 _See [helm install](https://helm.sh/docs/helm/helm_install/) for command documentation._
 
-## Dependencies
+### Dependencies
 
 By default this chart installs additional, dependent charts:
 
@@ -42,7 +42,17 @@ To disable dependencies during installation, see [multiple releases](#multiple-r
 
 _See [helm dependency](https://helm.sh/docs/helm/helm_dependency/) for command documentation._
 
-## Uninstall Helm Chart
+#### Grafana Dashboards
+
+This chart provisions a collection of curated Grafana dashboards that are automatically loaded into Grafana via ConfigMaps. These dashboards are rendered into the Helm chart under [`templates/grafana/`](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack/templates/grafana/), but **this is not their source of truth**.
+
+The dashboards originate from various upstream projects and are gathered and processed using scripts in the [`hack/`](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack/hack) directory. For details on how these dashboards are sourced and kept up to date, refer to the [hack/README.md](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/hack/README.md).
+
+> **Note:** The dashboards referenced in the `hack` scripts are usually **not the original source** either. Most originate from separate **Prometheus mixin repositories** (e.g., [kubernetes-mixin](https://github.com/kubernetes-monitoring/kubernetes-mixin)) and are processed through `jsonnet` tooling before being included here. To find the original source in case you want to modify it you may have to search even further upstream.
+
+If you wish to contribute or modify dashboards, please follow the guidance in the `hack/README.md` to ensure consistency and reproducibility.
+
+### Uninstall Helm Chart
 
 ```console
 helm uninstall [RELEASE_NAME]
@@ -59,333 +69,41 @@ kubectl delete crd alertmanagerconfigs.monitoring.coreos.com
 kubectl delete crd alertmanagers.monitoring.coreos.com
 kubectl delete crd podmonitors.monitoring.coreos.com
 kubectl delete crd probes.monitoring.coreos.com
+kubectl delete crd prometheusagents.monitoring.coreos.com
 kubectl delete crd prometheuses.monitoring.coreos.com
 kubectl delete crd prometheusrules.monitoring.coreos.com
+kubectl delete crd scrapeconfigs.monitoring.coreos.com
 kubectl delete crd servicemonitors.monitoring.coreos.com
 kubectl delete crd thanosrulers.monitoring.coreos.com
 ```
 
-## Upgrading Chart
+### Upgrading Chart
 
 ```console
-helm upgrade [RELEASE_NAME] prometheus-community/kube-prometheus-stack
+helm upgrade [RELEASE_NAME] [CHART]
 ```
 
 With Helm v3, CRDs created by this chart are not updated by default and should be manually updated.
 Consult also the [Helm Documentation on CRDs](https://helm.sh/docs/chart_best_practices/custom_resource_definitions).
 
+CRDs update lead to a major version bump.
+The Chart's [appVersion](https://github.com/prometheus-community/helm-charts/blob/13ed7098db2f78c2bbcdab6c1c3c7a95b4b94574/charts/kube-prometheus-stack/Chart.yaml#L36) refers to the [`prometheus-operator`](https://github.com/prometheus-operator/prometheus-operator/tree/main)'s version with matching CRDs.
+
 _See [helm upgrade](https://helm.sh/docs/helm/helm_upgrade/) for command documentation._
 
-### Upgrading an existing Release to a new major version
+#### Upgrading an existing Release to a new major version
 
 A major chart version change (like v1.2.3 -> v2.0.0) indicates that there is an incompatible breaking change needing manual actions.
 
-### From 34.x to 35.x
-
-This upgraded prometheus-operator to v0.56.0 and prometheus to v2.35.0
-
-Run these commands to update the CRDs before applying the upgrade.
-
-```console
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.56.0/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagerconfigs.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.56.0/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagers.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.56.0/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.56.0/example/prometheus-operator-crd/monitoring.coreos.com_probes.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.56.0/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.56.0/example/prometheus-operator-crd/monitoring.coreos.com_prometheusrules.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.56.0/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.56.0/example/prometheus-operator-crd/monitoring.coreos.com_thanosrulers.yaml
-```
-
-### From 33.x to 34.x
-
-This upgrades to prometheus-operator to v0.55.0 and prometheus to v2.33.5.
-
-Run these commands to update the CRDs before applying the upgrade.
-
-```console
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.55.0/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagerconfigs.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.55.0/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagers.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.55.0/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.55.0/example/prometheus-operator-crd/monitoring.coreos.com_probes.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.55.0/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.55.0/example/prometheus-operator-crd/monitoring.coreos.com_prometheusrules.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.55.0/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.55.0/example/prometheus-operator-crd/monitoring.coreos.com_thanosrulers.yaml
-```
-
-### From 32.x to 33.x
-
-This upgrades the prometheus-node-exporter Chart to v3.0.0. Please review the changes to this subchart if you make customizations to hostMountPropagation.
-
-### From 31.x to 32.x
-
-This upgrades to prometheus-operator to v0.54.0 and prometheus to v2.33.1. It also changes the default for `grafana.serviceMonitor.enabled` to `true.
-
-Run these commands to update the CRDs before applying the upgrade.
-
-```console
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.54.0/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagerconfigs.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.54.0/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagers.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.54.0/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.54.0/example/prometheus-operator-crd/monitoring.coreos.com_probes.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.54.0/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.54.0/example/prometheus-operator-crd/monitoring.coreos.com_prometheusrules.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.54.0/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.54.0/example/prometheus-operator-crd/monitoring.coreos.com_thanosrulers.yaml
-```
-
-### From 30.x to 31.x
-
-This version removes the built-in grafana ServiceMonitor and instead relies on the ServiceMonitor of the sub-chart.
-`grafana.serviceMonitor.enabled` must be set instead of `grafana.serviceMonitor.selfMonitor` and the old ServiceMonitor may
-need to be manually cleaned up after deploying the new release.
-
-### From 29.x to 30.x
-
-This version updates kube-state-metrics to 4.3.0 and uses the new option `kube-state-metrics.releaseLabel=true` which adds the "release" label to kube-state-metrics labels, making scraping of the metrics by kube-prometheus-stack work out of the box again, independent of the used kube-prometheus-stack release name. If you already set the "release" label via `kube-state-metrics.customLabels` you might have to remove that and use it via the new option.
-
-### From 28.x to 29.x
-
-This version makes scraping port for kube-controller-manager and kube-scheduler dynamic to reflect changes to default serving ports
-for those components in Kubernetes versions v1.22 and v1.23 respectively.
-
-If you deploy on clusters using version v1.22+, kube-controller-manager will be scraped over HTTPS on port 10257.
-
-If you deploy on clusters running version v1.23+, kube-scheduler will be scraped over HTTPS on port 10259.
-
-### From 27.x to 28.x
-
-This version disables PodSecurityPolicies by default because they are deprecated in Kubernetes 1.21 and will be removed in Kubernetes 1.25.
-
-If you are using PodSecurityPolicies you can enable the previous behaviour by setting `kube-state-metrics.podSecurityPolicy.enabled`, `prometheus-node-exporter.rbac.pspEnabled`, `grafana.rbac.pspEnabled` and `global.rbac.pspEnabled` to `true`.
-
-### From 26.x to 27.x
-
-This version splits prometheus-node-exporter chart recording and altering rules in separate config values.
-Instead of `defaultRules.rules.node` the 2 new variables `defaultRules.rules.nodeExporterAlerting` and `defaultRules.rules.nodeExporterRecording` are used.
-
-Also the following defaultRules.rules has been removed as they had no effect: `kubeApiserverError`, `kubePrometheusNodeAlerting`, `kubernetesAbsent`, `time`.
-
-The ability to set a rubookUrl via `defaultRules.rules.rubookUrl` was reintroduced.
-
-### From 25.x to 26.x
-
-This version enables the prometheus-node-exporter subchart servicemonitor by default again, by setting `prometheus-node-exporter.prometheus.monitor.enabled` to `true`.
-
-### From 24.x to 25.x
-
-This version upgrade to prometheus-operator v0.53.1. It removes support for setting a runbookUrl, since the upstream format for runbooks changed.
-
-```console
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.53.1/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagerconfigs.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.53.1/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagers.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.53.1/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.53.1/example/prometheus-operator-crd/monitoring.coreos.com_probes.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.53.1/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.53.1/example/prometheus-operator-crd/monitoring.coreos.com_prometheusrules.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.53.1/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.53.1/example/prometheus-operator-crd/monitoring.coreos.com_thanosrulers.yaml
-```
-
-### From 23.x to 24.x
-
-The custom `ServiceMonitor` for the _kube-state-metrics_ & _prometheus-node-exporter_ charts have been removed in favour of the built-in sub-chart `ServiceMonitor`; for both sub-charts this means that `ServiceMonitor` customisations happen via the values passed to the chart. If you haven't directly customised this behaviour then there are no changes required to upgrade, but if you have please read the following.
-
-For _kube-state-metrics_ the `ServiceMonitor` customisation is now set via `kube-state-metrics.prometheus.monitor` and the `kubeStateMetrics.serviceMonitor.selfMonitor.enabled` value has moved to `kube-state-metrics.selfMonitor.enabled`.
-
-For _prometheus-node-exporter_ the `ServiceMonitor` customisation is now set via `prometheus-node-exporter.prometheus.monitor` and the `nodeExporter.jobLabel` values has moved to `prometheus-node-exporter.prometheus.monitor.jobLabel`.
-
-### From 22.x to 23.x
-
-Port names have been renamed for Istio's
-[explicit protocol selection](https://istio.io/latest/docs/ops/configuration/traffic-management/protocol-selection/#explicit-protocol-selection).
-
-| | old value | new value |
-|-|-----------|-----------|
-| `alertmanager.alertmanagerSpec.portName` | `web` | `http-web` |
-| `grafana.service.portName` | `service` | `http-web` |
-| `prometheus-node-exporter.service.portName` | `metrics` (hardcoded) | `http-metrics` |
-| `prometheus.prometheusSpec.portName` | `web` | `http-web` |
-
-### From 21.x to 22.x
-
-Due to the upgrade of the `kube-state-metrics` chart, removal of its deployment/stateful needs to done manually prior to upgrading:
-
-```console
-kubectl delete deployments.apps -l app.kubernetes.io/instance=prometheus-operator,app.kubernetes.io/name=kube-state-metrics --cascade=orphan
-```
-
-or if you use autosharding:
-
-```console
-kubectl delete statefulsets.apps -l app.kubernetes.io/instance=prometheus-operator,app.kubernetes.io/name=kube-state-metrics --cascade=orphan
-```
-
-### From 20.x to 21.x
-
-The config reloader values have been refactored. All the values have been moved to the key `prometheusConfigReloader` and the limits and requests can now be set separately.
-
-### From 19.x to 20.x
-
-Version 20 upgrades prometheus-operator from 0.50.x to 0.52.x. Helm does not automatically upgrade or install new CRDs on a chart upgrade, so you have to install the CRDs manually before updating:
-
-```console
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.52.0/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagerconfigs.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.52.0/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagers.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.52.0/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.52.0/example/prometheus-operator-crd/monitoring.coreos.com_probes.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.52.0/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.52.0/example/prometheus-operator-crd/monitoring.coreos.com_prometheusrules.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.52.0/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.52.0/example/prometheus-operator-crd/monitoring.coreos.com_thanosrulers.yaml
-```
-
-### From 18.x to 19.x
-
-`kubeStateMetrics.serviceMonitor.namespaceOverride` was removed.
-Please use `kube-state-metrics.namespaceOverride` instead.
-
-### From 17.x to 18.x
-
-Version 18 upgrades prometheus-operator from 0.49.x to 0.50.x. Helm does not automatically upgrade or install new CRDs on a chart upgrade, so you have to install the CRDs manually before updating:
-
-```console
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.50.0/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagerconfigs.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.50.0/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagers.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.50.0/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.50.0/example/prometheus-operator-crd/monitoring.coreos.com_probes.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.50.0/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.50.0/example/prometheus-operator-crd/monitoring.coreos.com_prometheusrules.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.50.0/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.50.0/example/prometheus-operator-crd/monitoring.coreos.com_thanosrulers.yaml
-```
-
-### From 16.x to 17.x
-
-Version 17 upgrades prometheus-operator from 0.48.x to 0.49.x. Helm does not automatically upgrade or install new CRDs on a chart upgrade, so you have to install the CRDs manually before updating:
-
-```console
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.49.0/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagerconfigs.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.49.0/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagers.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.49.0/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.49.0/example/prometheus-operator-crd/monitoring.coreos.com_probes.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.49.0/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.49.0/example/prometheus-operator-crd/monitoring.coreos.com_prometheusrules.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.49.0/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.49.0/example/prometheus-operator-crd/monitoring.coreos.com_thanosrulers.yaml
-```
-
-### From 15.x to 16.x
-
-Version 16 upgrades kube-state-metrics to v2.0.0. This includes changed command-line arguments and removed metrics, see this [blog post](https://kubernetes.io/blog/2021/04/13/kube-state-metrics-v-2-0/). This version also removes Grafana dashboards that supported Kubernetes 1.14 or earlier.
-
-### From 14.x to 15.x
-
-Version 15 upgrades prometheus-operator from 0.46.x to 0.47.x. Helm does not automatically upgrade or install new CRDs on a chart upgrade, so you have to install the CRDs manually before updating:
-
-```console
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.47.0/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagerconfigs.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.47.0/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagers.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.47.0/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.47.0/example/prometheus-operator-crd/monitoring.coreos.com_probes.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.47.0/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.47.0/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.47.0/example/prometheus-operator-crd/monitoring.coreos.com_thanosrulers.yaml
-```
-
-### From 13.x to 14.x
-
-Version 14 upgrades prometheus-operator from 0.45.x to 0.46.x. Helm does not automatically upgrade or install new CRDs on a chart upgrade, so you have to install the CRDs manually before updating:
-
-```console
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.46.0/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagerconfigs.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.46.0/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagers.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.46.0/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.46.0/example/prometheus-operator-crd/monitoring.coreos.com_probes.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.46.0/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.46.0/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.46.0/example/prometheus-operator-crd/monitoring.coreos.com_thanosrulers.yaml
-```
-
-### From 12.x to 13.x
-
-Version 13 upgrades prometheus-operator from 0.44.x to 0.45.x. Helm does not automatically upgrade or install new CRDs on a chart upgrade, so you have to install the CRD manually before updating:
-
-```console
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.45.0/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagerconfigs.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.45.0/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.45.0/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagers.yaml
-```
-
-### From 11.x to 12.x
-
-Version 12 upgrades prometheus-operator from 0.43.x to 0.44.x. Helm does not automatically upgrade or install new CRDs on a chart upgrade, so you have to install the CRD manually before updating:
-
-```console
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/release-0.44/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml
-```
-
-The chart was migrated to support only helm v3 and later.
-
-### From 10.x to 11.x
-
-Version 11 upgrades prometheus-operator from 0.42.x to 0.43.x. Starting with 0.43.x an additional `AlertmanagerConfigs` CRD is introduced. Helm does not automatically upgrade or install new CRDs on a chart upgrade, so you have to install the CRD manually before updating:
-
-```console
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/release-0.43/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagerconfigs.yaml
-```
-
-Version 11 removes the deprecated tlsProxy via ghostunnel in favor of native TLS support the prometheus-operator gained with v0.39.0.
-
-### From 9.x to 10.x
-
-Version 10 upgrades prometheus-operator from 0.38.x to 0.42.x. Starting with 0.40.x an additional `Probes` CRD is introduced. Helm does not automatically upgrade or install new CRDs on a chart upgrade, so you have to install the CRD manually before updating:
-
-```console
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/release-0.42/example/prometheus-operator-crd/monitoring.coreos.com_probes.yaml
-```
-
-### From 8.x to 9.x
-
-Version 9 of the helm chart removes the existing `additionalScrapeConfigsExternal` in favour of `additionalScrapeConfigsSecret`. This change lets users specify the secret name and secret key to use for the additional scrape configuration of prometheus. This is useful for users that have prometheus-operator as a subchart and also have a template that creates the additional scrape configuration.
-
-### From 7.x to 8.x
-
-Due to new template functions being used in the rules in version 8.x.x of the chart, an upgrade to Prometheus Operator and Prometheus is necessary in order to support them. First, upgrade to the latest version of 7.x.x
-
-```console
-helm upgrade [RELEASE_NAME] prometheus-community/kube-prometheus-stack --version 7.5.0
-```
-
-Then upgrade to 8.x.x
-
-```console
-helm upgrade [RELEASE_NAME] prometheus-community/kube-prometheus-stack --version [8.x.x]
-```
-
-Minimal recommended Prometheus version for this chart release is `2.12.x`
-
-### From 6.x to 7.x
-
-Due to a change in grafana subchart, version 7.x.x now requires Helm >= 2.12.0.
-
-### From 5.x to 6.x
-
-Due to a change in deployment labels of kube-state-metrics, the upgrade requires `helm upgrade --force` in order to re-create the deployment. If this is not done an error will occur indicating that the deployment cannot be modified:
-
-```console
-invalid: spec.selector: Invalid value: v1.LabelSelector{MatchLabels:map[string]string{"app.kubernetes.io/name":"kube-state-metrics"}, MatchExpressions:[]v1.LabelSelectorRequirement(nil)}: field is immutable
-```
-
-If this error has already been encountered, a `helm history` command can be used to determine which release has worked, then `helm rollback` to the release, then `helm upgrade --force` to this new one
+See [UPGRADE.md](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/UPGRADE.md)
+for breaking changes between versions.
 
 ## Configuration
 
 See [Customizing the Chart Before Installing](https://helm.sh/docs/intro/using_helm/#customizing-the-chart-before-installing). To see all configurable options with detailed comments:
 
 ```console
-helm show values prometheus-community/kube-prometheus-stack
+helm show values oci://ghcr.io/prometheus-community/charts/kube-prometheus-stack
 ```
 
 You may also `helm show values` on this chart's [dependencies](#dependencies) for additional options.
@@ -429,7 +147,7 @@ Because the operator can only run as a single pod, there is potential for this c
 
 ## Developing Prometheus Rules and Grafana Dashboards
 
-This chart Grafana Dashboards and Prometheus Rules are just a copy from [prometheus-operator/prometheus-operator](https://github.com/prometheus-operator/prometheus-operator) and other sources, synced (with alterations) by scripts in [hack](hack) folder. In order to introduce any changes you need to first [add them to the original repository](https://github.com/prometheus-operator/kube-prometheus/blob/master/docs/developing-prometheus-rules-and-grafana-dashboards.md) and then sync there by scripts.
+This chart Grafana Dashboards and Prometheus Rules are just a copy from [prometheus-operator/prometheus-operator](https://github.com/prometheus-operator/prometheus-operator) and other sources, synced (with alterations) by scripts in [hack](hack) folder. In order to introduce any changes you need to first [add them to the original repository](https://github.com/prometheus-operator/kube-prometheus/blob/main/docs/customizations/developing-prometheus-rules-and-grafana-dashboards.md) and then sync there by scripts.
 
 ## Further Information
 
@@ -444,8 +162,8 @@ For more in-depth documentation of configuration options meanings, please see
 The prometheus operator does not support annotation-based discovery of services, using the `PodMonitor` or `ServiceMonitor` CRD in its place as they provide far more configuration options.
 For information on how to use PodMonitors/ServiceMonitors, please see the documentation on the `prometheus-operator/prometheus-operator` documentation here:
 
-- [ServiceMonitors](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/user-guides/getting-started.md#include-servicemonitors)
-- [PodMonitors](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/user-guides/getting-started.md#include-podmonitors)
+- [ServiceMonitors](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/developer/getting-started.md#using-servicemonitors)
+- [PodMonitors](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/developer/getting-started.md#using-podmonitors)
 - [Running Exporters](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/user-guides/running-exporters.md)
 
 By default, Prometheus discovers PodMonitors and ServiceMonitors within its namespace, that are labeled with the same release tag as the prometheus-operator release.
@@ -544,7 +262,7 @@ There is no simple and direct migration path between the charts as the changes a
 
 The capabilities of the old chart are all available in the new chart, including the ability to run multiple prometheus instances on a single cluster - you will need to disable the parts of the chart you do not wish to deploy.
 
-You can check out the tickets for this change [here](https://github.com/prometheus-operator/prometheus-operator/issues/592) and [here](https://github.com/helm/charts/pull/6765).
+You can check out the tickets for this change at [prometheus-operator/prometheus-operator #592](https://github.com/prometheus-operator/prometheus-operator/issues/592) and [helm/charts #6765](https://github.com/helm/charts/pull/6765).
 
 ### High-level overview of Changes
 

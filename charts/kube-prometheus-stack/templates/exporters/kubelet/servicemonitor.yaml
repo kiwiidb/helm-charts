@@ -1,17 +1,41 @@
-{{- if .Values.kubelet.enabled }}
+{{- if and .Values.kubelet.enabled .Values.kubelet.serviceMonitor.enabled .Values.kubernetesServiceMonitors.enabled }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: {{ template "kube-prometheus-stack.fullname" . }}-kubelet
+  {{- if .Values.prometheus.prometheusSpec.ignoreNamespaceSelectors }}
+  namespace: {{ .Values.kubelet.namespace }}
+  {{- else }}
   namespace: {{ template "kube-prometheus-stack.namespace" . }}
+  {{- end }}
   labels:
     app: {{ template "kube-prometheus-stack.name" . }}-kubelet
+  {{- with .Values.kubelet.serviceMonitor.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 {{- include "kube-prometheus-stack.labels" . | indent 4 }}
 spec:
+  {{- include "servicemonitor.scrapeLimits" .Values.kubelet.serviceMonitor | nindent 2 }}
+  {{- with .Values.kubelet.serviceMonitor.attachMetadata }}
+  attachMetadata:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  jobLabel: k8s-app
+  {{- with .Values.kubelet.serviceMonitor.targetLabels }}
+  targetLabels:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  namespaceSelector:
+    matchNames:
+    - {{ .Values.kubelet.namespace }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kubelet
+      k8s-app: kubelet
   endpoints:
-  {{- if .Values.kubelet.serviceMonitor.https }}
-  - port: https-metrics
-    scheme: https
+{{- if .Values.kubelet.serviceMonitor.kubelet }}
+  - port: {{ template "kube-prometheus-stack.kubelet.scheme" . }}-metrics
+    scheme: {{ template "kube-prometheus-stack.kubelet.scheme" . }}
     {{- if .Values.kubelet.serviceMonitor.interval }}
     interval: {{ .Values.kubelet.serviceMonitor.interval }}
     {{- end }}
@@ -21,11 +45,9 @@ spec:
     {{- if .Values.kubelet.serviceMonitor.scrapeTimeout }}
     scrapeTimeout: {{ .Values.kubelet.serviceMonitor.scrapeTimeout }}
     {{- end }}
-    tlsConfig:
-      caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-      insecureSkipVerify: true
-    bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
-    honorLabels: true
+    {{- include "kube-prometheus-stack.kubelet.authConfig" . | indent 4 }}
+    honorLabels: {{ .Values.kubelet.serviceMonitor.honorLabels }}
+    honorTimestamps: {{ .Values.kubelet.serviceMonitor.honorTimestamps }}
 {{- if .Values.kubelet.serviceMonitor.metricRelabelings }}
     metricRelabelings:
 {{ tpl (toYaml .Values.kubelet.serviceMonitor.metricRelabelings | indent 4) . }}
@@ -34,12 +56,15 @@ spec:
     relabelings:
 {{ tpl (toYaml .Values.kubelet.serviceMonitor.relabelings | indent 4) . }}
 {{- end }}
+{{- end }}
 {{- if .Values.kubelet.serviceMonitor.cAdvisor }}
-  - port: https-metrics
-    scheme: https
+  - port: {{ template "kube-prometheus-stack.kubelet.scheme" . }}-metrics
+    scheme: {{ template "kube-prometheus-stack.kubelet.scheme" . }}
     path: /metrics/cadvisor
     {{- if .Values.kubelet.serviceMonitor.interval }}
     interval: {{ .Values.kubelet.serviceMonitor.interval }}
+    {{- else }}
+    interval: {{ .Values.kubelet.serviceMonitor.cAdvisorInterval }}
     {{- end }}
     {{- if .Values.kubelet.serviceMonitor.proxyUrl }}
     proxyUrl: {{ .Values.kubelet.serviceMonitor.proxyUrl }}
@@ -47,11 +72,14 @@ spec:
     {{- if .Values.kubelet.serviceMonitor.scrapeTimeout }}
     scrapeTimeout: {{ .Values.kubelet.serviceMonitor.scrapeTimeout }}
     {{- end }}
-    honorLabels: true
-    tlsConfig:
-      caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-      insecureSkipVerify: true
-    bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    honorLabels: {{ .Values.kubelet.serviceMonitor.honorLabels }}
+    {{- if .Values.kubelet.serviceMonitor.trackTimestampsStaleness }}
+    honorTimestamps: true
+    {{- else }}
+    honorTimestamps: {{ .Values.kubelet.serviceMonitor.honorTimestamps }}
+    {{- end }}
+    trackTimestampsStaleness: {{ .Values.kubelet.serviceMonitor.trackTimestampsStaleness }}
+    {{- include "kube-prometheus-stack.kubelet.authConfig" . | indent 4 }}
 {{- if .Values.kubelet.serviceMonitor.cAdvisorMetricRelabelings }}
     metricRelabelings:
 {{ tpl (toYaml .Values.kubelet.serviceMonitor.cAdvisorMetricRelabelings | indent 4) . }}
@@ -62,8 +90,8 @@ spec:
 {{- end }}
 {{- end }}
 {{- if .Values.kubelet.serviceMonitor.probes }}
-  - port: https-metrics
-    scheme: https
+  - port: {{ template "kube-prometheus-stack.kubelet.scheme" . }}-metrics
+    scheme: {{ template "kube-prometheus-stack.kubelet.scheme" . }}
     path: /metrics/probes
     {{- if .Values.kubelet.serviceMonitor.interval }}
     interval: {{ .Values.kubelet.serviceMonitor.interval }}
@@ -74,11 +102,9 @@ spec:
     {{- if .Values.kubelet.serviceMonitor.scrapeTimeout }}
     scrapeTimeout: {{ .Values.kubelet.serviceMonitor.scrapeTimeout }}
     {{- end }}
-    honorLabels: true
-    tlsConfig:
-      caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-      insecureSkipVerify: true
-    bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    honorLabels: {{ .Values.kubelet.serviceMonitor.honorLabels }}
+    honorTimestamps: {{ .Values.kubelet.serviceMonitor.honorTimestamps }}
+    {{- include "kube-prometheus-stack.kubelet.authConfig" . | indent 4 }}
 {{- if .Values.kubelet.serviceMonitor.probesMetricRelabelings }}
     metricRelabelings:
 {{ tpl (toYaml .Values.kubelet.serviceMonitor.probesMetricRelabelings | indent 4) . }}
@@ -89,11 +115,13 @@ spec:
 {{- end }}
 {{- end }}
 {{- if .Values.kubelet.serviceMonitor.resource }}
-  - port: https-metrics
-    scheme: https
+  - port: {{ template "kube-prometheus-stack.kubelet.scheme" . }}-metrics
+    scheme: {{ template "kube-prometheus-stack.kubelet.scheme" . }}
     path: {{ .Values.kubelet.serviceMonitor.resourcePath }}
     {{- if .Values.kubelet.serviceMonitor.interval }}
     interval: {{ .Values.kubelet.serviceMonitor.interval }}
+    {{- else }}
+    interval: {{ .Values.kubelet.serviceMonitor.resourceInterval }}
     {{- end }}
     {{- if .Values.kubelet.serviceMonitor.proxyUrl }}
     proxyUrl: {{ .Values.kubelet.serviceMonitor.proxyUrl }}
@@ -101,74 +129,14 @@ spec:
     {{- if .Values.kubelet.serviceMonitor.scrapeTimeout }}
     scrapeTimeout: {{ .Values.kubelet.serviceMonitor.scrapeTimeout }}
     {{- end }}
-    honorLabels: true
-    tlsConfig:
-      caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-      insecureSkipVerify: true
-    bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
-{{- if .Values.kubelet.serviceMonitor.resourceMetricRelabelings }}
-    metricRelabelings:
-{{ tpl (toYaml .Values.kubelet.serviceMonitor.resourceMetricRelabelings | indent 4) . }}
-{{- end }}
-{{- if .Values.kubelet.serviceMonitor.resourceRelabelings }}
-    relabelings:
-{{ tpl (toYaml .Values.kubelet.serviceMonitor.resourceRelabelings | indent 4) . }}
-{{- end }}
-{{- end }}
-  {{- else }}
-  - port: http-metrics
-    {{- if .Values.kubelet.serviceMonitor.interval }}
-    interval: {{ .Values.kubelet.serviceMonitor.interval }}
+    honorLabels: {{ .Values.kubelet.serviceMonitor.honorLabels }}
+    {{- if .Values.kubelet.serviceMonitor.trackTimestampsStaleness }}
+    honorTimestamps: true
+    {{- else }}
+    honorTimestamps: {{ .Values.kubelet.serviceMonitor.honorTimestamps }}
     {{- end }}
-    {{- if .Values.kubelet.serviceMonitor.proxyUrl }}
-    proxyUrl: {{ .Values.kubelet.serviceMonitor.proxyUrl }}
-    {{- end }}
-    {{- if .Values.kubelet.serviceMonitor.scrapeTimeout }}
-    scrapeTimeout: {{ .Values.kubelet.serviceMonitor.scrapeTimeout }}
-    {{- end }}
-    honorLabels: true
-{{- if .Values.kubelet.serviceMonitor.metricRelabelings }}
-    metricRelabelings:
-{{ tpl (toYaml .Values.kubelet.serviceMonitor.metricRelabelings | indent 4) . }}
-{{- end }}
-{{- if .Values.kubelet.serviceMonitor.relabelings }}
-    relabelings:
-{{ tpl (toYaml .Values.kubelet.serviceMonitor.relabelings | indent 4) . }}
-{{- end }}
-{{- if .Values.kubelet.serviceMonitor.cAdvisor }}
-  - port: http-metrics
-    path: /metrics/cadvisor
-    {{- if .Values.kubelet.serviceMonitor.interval }}
-    interval: {{ .Values.kubelet.serviceMonitor.interval }}
-    {{- end }}
-    {{- if .Values.kubelet.serviceMonitor.proxyUrl }}
-    proxyUrl: {{ .Values.kubelet.serviceMonitor.proxyUrl }}
-    {{- end }}
-    {{- if .Values.kubelet.serviceMonitor.scrapeTimeout }}
-    scrapeTimeout: {{ .Values.kubelet.serviceMonitor.scrapeTimeout }}
-    {{- end }}
-    honorLabels: true
-{{- if .Values.kubelet.serviceMonitor.cAdvisorMetricRelabelings }}
-    metricRelabelings:
-{{ tpl (toYaml .Values.kubelet.serviceMonitor.cAdvisorMetricRelabelings | indent 4) . }}
-{{- end }}
-{{- if .Values.kubelet.serviceMonitor.cAdvisorRelabelings }}
-    relabelings:
-{{ tpl (toYaml .Values.kubelet.serviceMonitor.cAdvisorRelabelings | indent 4) . }}
-{{- end }}
-{{- if .Values.kubelet.serviceMonitor.resource }}
-  - port: http-metrics
-    path: {{ .Values.kubelet.serviceMonitor.resourcePath }}
-    {{- if .Values.kubelet.serviceMonitor.interval }}
-    interval: {{ .Values.kubelet.serviceMonitor.interval }}
-    {{- end }}
-    {{- if .Values.kubelet.serviceMonitor.proxyUrl }}
-    proxyUrl: {{ .Values.kubelet.serviceMonitor.proxyUrl }}
-    {{- end }}
-    {{- if .Values.kubelet.serviceMonitor.scrapeTimeout }}
-    scrapeTimeout: {{ .Values.kubelet.serviceMonitor.scrapeTimeout }}
-    {{- end }}
-    honorLabels: true
+    trackTimestampsStaleness: {{ .Values.kubelet.serviceMonitor.trackTimestampsStaleness }}
+    {{- include "kube-prometheus-stack.kubelet.authConfig" .  | indent 4 }}
 {{- if .Values.kubelet.serviceMonitor.resourceMetricRelabelings }}
     metricRelabelings:
 {{ tpl (toYaml .Values.kubelet.serviceMonitor.resourceMetricRelabelings | indent 4) . }}
@@ -179,13 +147,3 @@ spec:
 {{- end }}
 {{- end }}
 {{- end }}
-  {{- end }}
-  jobLabel: k8s-app
-  namespaceSelector:
-    matchNames:
-    - {{ .Values.kubelet.namespace }}
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: kubelet
-      k8s-app: kubelet
-{{- end}}

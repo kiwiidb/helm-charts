@@ -8,7 +8,7 @@ metadata:
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
   labels:
     app: {{ template "kube-prometheus-stack.name" $ }}-admission
-{{- include "kube-prometheus-stack.labels" $ | indent 4 }}
+    {{- include "kube-prometheus-stack.prometheus-operator-webhook.labels" $ | nindent 4 }}
 rules:
   - apiGroups:
       - admissionregistration.k8s.io
@@ -18,16 +18,4 @@ rules:
     verbs:
       - get
       - update
-{{- if .Values.global.rbac.pspEnabled }}
-{{- $kubeTargetVersion := default .Capabilities.KubeVersion.GitVersion .Values.kubeTargetVersionOverride }}
-{{- if semverCompare "> 1.15.0-0" $kubeTargetVersion }}
-  - apiGroups: ['policy']
-{{- else }}
-  - apiGroups: ['extensions']
-{{- end }}
-    resources: ['podsecuritypolicies']
-    verbs:     ['use']
-    resourceNames:
-    - {{ template "kube-prometheus-stack.fullname" . }}-admission
-{{- end }}
 {{- end }}
