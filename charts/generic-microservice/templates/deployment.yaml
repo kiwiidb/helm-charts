@@ -45,6 +45,10 @@ spec:
           startupProbe:
                 {{- toYaml . | nindent 12 }}
           {{- end }}
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
+                {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- with .Values.args }}
           args:
                 {{- toYaml . | nindent 12 }}
