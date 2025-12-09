@@ -3,8 +3,8 @@
 # Declare variables to be passed into your templates.
 terminationGracePeriodSeconds: 30
 image:
-  repository: ghcr.io/getalby/docker-bitcoind
-  tag: v22.0
+  repository: lightninglabs/bitcoin-core
+  tag: 30-alpine
   pullPolicy: IfNotPresent
 
 service:
