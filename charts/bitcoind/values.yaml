@@ -42,7 +42,11 @@ miningCronjob:
 # Custom bitcoind configuration file used to override default bitcoind settings
 configurationFile:
   bitcoin.conf: |-
+    regtest=1
     server=1
     printtoconsole=1
+
+    [regtest]
+    rpcport=8332
     rpcuser=rpcuser
     rpcpassword=rpcpassword

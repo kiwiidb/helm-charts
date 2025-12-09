@@ -27,12 +27,14 @@ spec:
       initContainers:
         - name: copy-bitcoind-config
           image: busybox
-          command: ['sh', '-c', 'cp /configmap/bitcoin.conf /home/bitcoin/.bitcoin/bitcoin.conf']
+          command: ['sh', '-c', 'cp /configmap/bitcoin.conf /home/bitcoin/.bitcoin/bitcoin.conf && mkdir -p /root/.bitcoin && ln -sf /home/bitcoin/.bitcoin/bitcoin.conf /root/.bitcoin/bitcoin.conf']
           volumeMounts:
             - name: configmap
               mountPath: /configmap
             - name: config
               mountPath: /home/bitcoin/.bitcoin/
+            - name: data
+              mountPath: /home/bitcoin
       {{- end }}
       containers:
         - name: {{ template "bitcoind.fullname" . }}
@@ -68,8 +70,10 @@ spec:
           command: ['/bin/sh']
           args:
             - "-c"
-            - "while true; do bitcoin-cli -generate 1; sleep {{ .Values.miningCronjob.intervalSeconds }}; done"
+            - "while true; do bitcoin-cli -datadir=/home/bitcoin/.bitcoin -generate 1; sleep {{ .Values.miningCronjob.intervalSeconds }}; done"
           volumeMounts:
+            - name: data
+              mountPath: /home/bitcoin
             {{- if .Values.configurationFile }}
             - name: config
               mountPath: /home/bitcoin/.bitcoin/bitcoin.conf
