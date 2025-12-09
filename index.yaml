@@ -3,14 +3,14 @@ entries:
   alloy:
   - apiVersion: v2
     appVersion: v1.10.0
-    created: "2025-12-09T14:01:54.592628889Z"
+    created: "2025-12-09T14:16:16.152265039Z"
     dependencies:
     - condition: crds.create
       name: crds
       repository: ""
       version: 0.0.0
     description: Grafana Alloy
-    digest: 5932b15ab006e2b4eb13839eaf4219daf376b614c33064e469d7db6515c50e59
+    digest: 72d3d0b3237a258babfe20168761bf29ddd72a1a663fad98926bc96f131f395c
     icon: https://raw.githubusercontent.com/grafana/alloy/main/docs/sources/assets/alloy_icon_orange.svg
     name: alloy
     type: application
@@ -18,6 +18,26 @@ entries:
     - https://kiwiidb.github.io/helm-charts/alloy-1.2.0.tgz
     version: 1.2.0
   bitcoind:
+  - apiVersion: v1
+    appVersion: 0.17.1
+    created: "2025-12-09T14:16:16.152773067Z"
+    description: Bitcoin is an innovative payment network and a new kind of money.
+    digest: 6b49d1e2f4573e2dfe4d63df75a1e7a8c29d3726784676fe9bc4b5435ce68332
+    home: https://bitcoin.org/
+    icon: https://bitcoin.org/img/icons/logotop.png
+    keywords:
+    - bitcoind
+    maintainers:
+    - email: kwinten@flitz.be
+      name: kiwiidb
+    name: bitcoind
+    sources:
+    - https://github.com/kubernetes/charts
+    - https://github.com/kuberstack/bitcoind
+    - https://github.com/kylemanna/docker-bitcoind
+    urls:
+    - https://kiwiidb.github.io/helm-charts/bitcoind-1.3.0.tgz
+    version: 1.3.0
   - apiVersion: v1
     appVersion: 0.17.1
     created: "2025-12-09T14:01:54.593004594Z"
@@ -185,9 +205,9 @@ entries:
   c-lightning:
   - apiVersion: v1
     appVersion: 0.11.0
-    created: "2025-12-09T14:01:54.593392942Z"
+    created: "2025-12-09T14:16:16.153157354Z"
     description: A C implementation of a Lightning Network node
-    digest: 6ca920a62bdabf8b60919897fea3a9562dc7bf5fb6d048453ecfc95690c31029
+    digest: c741cac7e1588545d054f26467a1f8da954261e4d4053b8e3729e7ded16d1d4b
     home: https://github.com/elementsproject/c-lightning
     keywords:
     - c-lightning
@@ -352,9 +372,9 @@ entries:
         url: https://cert-manager.io/public-keys/cert-manager-keyring-2021-09-20-1020CF3C033D4F35BAE1C19E1226061C665DF13E.gpg
     apiVersion: v1
     appVersion: v1.14.5
-    created: "2025-12-09T14:01:54.596778363Z"
+    created: "2025-12-09T14:16:16.157954516Z"
     description: A Helm chart for cert-manager
-    digest: beb4dc3c35eb5af591d3478b1072e007abf222b013ac55a738b2c6e0a57e1548
+    digest: ea91360141c25a4b9621cf97fd1108f8cf654673dc752dcb6cce5170aa79c781
     home: https://github.com/cert-manager/cert-manager
     icon: https://raw.githubusercontent.com/cert-manager/cert-manager/d53c0b9270f8cd90d908460d69502694e1838f5f/logo/logo-small.png
     keywords:
@@ -453,11 +473,11 @@ entries:
   clickhouse:
   - apiVersion: v1
     appVersion: "19.14"
-    created: "2025-12-09T14:01:54.597802183Z"
+    created: "2025-12-09T14:16:16.158989998Z"
     description: ClickHouse is an open source column-oriented database management
       system capable of real time generation of analytical data reports using SQL
       queries
-    digest: 6b6719b78a5de694dec7b5e9a0a9b8c8bf5cbda6702862002473d9114f510ef7
+    digest: 8e03236e770b28922ef634393b7df62e1d152311fb8c769bdde98e9e1e96819d
     home: https://clickhouse.yandex/
     icon: https://clickhouse.yandex/images/logo.png
     keywords:
@@ -476,7 +496,7 @@ entries:
   datadog:
   - apiVersion: v1
     appVersion: "7"
-    created: "2025-12-09T14:01:54.609274573Z"
+    created: "2025-12-09T14:16:16.171126846Z"
     dependencies:
     - condition: datadog.autoscaling.workload.enabled,clusterAgent.metricsProvider.useDatadogMetrics
       name: datadog-crds
@@ -489,7 +509,7 @@ entries:
       repository: https://prometheus-community.github.io/helm-charts
       version: 2.13.2
     description: Datadog Agent
-    digest: 6d8e7165a297d4af4da2063bf42298826308a0cb1e476d765b3fb64038c90a4c
+    digest: 097b0b9c2e018cb3d282d1ea88cf9c316997fbc0e47f0f56c27a53f9b57e006f
     home: https://www.datadoghq.com
     icon: https://datadog-live.imgix.net/img/dd_logo_70x75.png
     keywords:
@@ -573,9 +593,9 @@ entries:
   eclair:
   - apiVersion: v1
     appVersion: 0.10.2
-    created: "2025-12-09T14:01:54.609775443Z"
+    created: "2025-12-09T14:16:16.171628983Z"
     description: A Scala implementation of a Lightning Network node
-    digest: 63b35f00e8b7e874fe00a9ef7c0ddf97df004617697d6dd5a907f42b73b928a0
+    digest: e469eea3e3ec365034a4d1e7e37a65f5243a64f48895eb729541ff1a9aa3e677
     keywords:
     - eclair
     - cryptocurrency
@@ -992,9 +1012,9 @@ entries:
   generic-cronjob:
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2025-12-09T14:01:54.610004011Z"
+    created: "2025-12-09T14:16:16.171949451Z"
     description: A Helm chart for Kubernetes
-    digest: 58c2cd090e9214ce07cd284200fd5eca4855b4953e0a08dd7806e9e9635a066d
+    digest: 0377a1b104d3259488c439dbe047d55d8bd104987bcf28e5e48430e3f804da28
     name: generic-cronjob
     type: application
     urls:
@@ -1043,9 +1063,9 @@ entries:
     version: 0.2.0
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2025-12-09T14:01:54.610445279Z"
+    created: "2025-12-09T14:16:16.172352162Z"
     description: A Helm chart for Kubernetes
-    digest: 2348732ba98e2e4b6844ccccff48b991fee4eae1db9e4cbb32a37e50b3858161
+    digest: 9f20d47545359edd5659bac0f8bec9a2b6f036487edd8654e2c45eb021f9c4c2
     name: generic-microservice
     type: application
     urls:
@@ -1054,9 +1074,9 @@ entries:
   grafana-agent-resources:
   - apiVersion: v1
     appVersion: 1.16.0
-    created: "2025-12-09T14:01:54.61110143Z"
+    created: "2025-12-09T14:16:16.172808794Z"
     description: A Helm chart for Kubernetes
-    digest: 6348346275d561e8ee0c50dfb6b4f80c61d7c743981f213642b9e11c57bbbe05
+    digest: b333b7e86fe80fc8fc4289cc5f806e6b42cf02e697bcbab4288b671b9e07f686
     name: grafana-agent-resources
     type: application
     urls:
@@ -1071,10 +1091,10 @@ entries:
       artifacthub.io/prerelease: "false"
     apiVersion: v2
     appVersion: 1.10.1
-    created: "2025-12-09T14:01:54.615402748Z"
+    created: "2025-12-09T14:16:16.176475765Z"
     description: Ingress controller for Kubernetes using NGINX as a reverse proxy
       and load balancer
-    digest: c716c3fa4e9f92a13a31b05df01723e566a5970153d14ae4c732cf026cc212d1
+    digest: e8ec8743309a0ae000890bef18c8133b7d8422e2d48156744cbc337e3b5dae27
     home: https://github.com/kubernetes/ingress-nginx
     icon: https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Nginx_logo.svg/500px-Nginx_logo.svg.png
     keywords:
@@ -1152,7 +1172,7 @@ entries:
   keycloak:
   - apiVersion: v2
     appVersion: 17.0.1-legacy
-    created: "2025-12-09T14:01:54.623175775Z"
+    created: "2025-12-09T14:16:16.18462459Z"
     dependencies:
     - condition: postgresql.enabled
       name: postgresql
@@ -1160,7 +1180,7 @@ entries:
       version: 10.16.2
     description: Open Source Identity and Access Management For Modern Applications
       and Services
-    digest: 5fd5b1b04e99aa0292e68b465cf53d6f7085b127f93ec479a9c4368712a5e864
+    digest: 55858b655531d03bf62547dc6aa2370190a399176bf0abc9d0b7032b7aa0e7df
     home: https://www.keycloak.org/
     icon: https://www.keycloak.org/resources/images/keycloak_icon_512px.svg
     keywords:
@@ -1196,7 +1216,7 @@ entries:
       artifacthub.io/operator: "true"
     apiVersion: v2
     appVersion: v0.83.0
-    created: "2025-12-09T14:01:54.658462358Z"
+    created: "2025-12-09T14:16:16.222038033Z"
     dependencies:
     - condition: crds.enabled
       name: crds
@@ -1222,7 +1242,7 @@ entries:
       and Prometheus rules combined with documentation and scripts to provide easy
       to operate end-to-end Kubernetes cluster monitoring with Prometheus using the
       Prometheus Operator.
-    digest: c4af5e0af99801460cc805ba9e8e44a2211d8c9ce03e0b3a4699bd49ef299a61
+    digest: 167263c48912e07dbec61f03d7c133b91bd5c76ae12e9dc10f08a27e65decec5
     home: https://github.com/prometheus-operator/kube-prometheus
     icon: https://raw.githubusercontent.com/prometheus/prometheus.github.io/master/assets/prometheus_logo-cb55bb5c346.png
     keywords:
@@ -1383,9 +1403,9 @@ entries:
   kube-state-metrics:
   - apiVersion: v2
     appVersion: 2.4.1
-    created: "2025-12-09T14:01:54.659191907Z"
+    created: "2025-12-09T14:16:16.222775469Z"
     description: Install kube-state-metrics to generate and expose cluster-level metrics
-    digest: a3b5a1db3af895d7aeffc05ffd3d8644a43501c766b8127d63b835e59bda45a1
+    digest: cd78c0a54184e482fdd2d633239bd5bf76ab299cebef7912bce2036b0beecc49
     home: https://github.com/kubernetes/kube-state-metrics/
     keywords:
     - metric
@@ -1409,9 +1429,9 @@ entries:
   kubetail:
   - apiVersion: v2
     appVersion: 0.11.4
-    created: "2025-12-09T14:01:54.660610448Z"
+    created: "2025-12-09T14:16:16.224017666Z"
     description: Real-time logging dashboard for Kubernetes
-    digest: d5c81e5739907734e028f272355d66fe2fe2acc90d9b48a23fb76cae4a34a1b1
+    digest: 09f49749cd35e1e209b8b5ff8b86c9e253588db802d216a4ed40071d53e17da5
     home: https://github.com/kubetail-org/kubetail
     icon: https://assets.kubetail.com/helm/icon-40dad90a08.svg
     keywords:
@@ -1432,9 +1452,9 @@ entries:
   lnd:
   - apiVersion: v1
     appVersion: 0.14.1
-    created: "2025-12-09T14:01:54.661646481Z"
+    created: "2025-12-09T14:16:16.224749692Z"
     description: A golang implementation of a Lightning Network node
-    digest: 49392cbbc71569c5ceb3e7a53764ff47a6a1e5f4d81354cbac226159b0c33b0d
+    digest: 0926f8f5b2a89a48a3d20f97f7177b1996b40dc8f84833974ef98ea8b30399dd
     home: https://github.com/lightningnetwork/lnd
     keywords:
     - lnd
@@ -2939,9 +2959,9 @@ entries:
   lndhub:
   - apiVersion: v2
     appVersion: v1.4.1
-    created: "2025-12-09T14:01:54.662136741Z"
+    created: "2025-12-09T14:16:16.225098984Z"
     description: A Helm chart for Kubernetes
-    digest: 4358fa4ca8edd9468eba5022beac5f8ff12365d5199c61eb85656b574cc6351a
+    digest: 66549940e6e522544162cbbb2332b6fdf405edf40d36dde05c9b193e5ddab335
     name: lndhub
     type: application
     urls:
@@ -2950,7 +2970,7 @@ entries:
   loki:
   - apiVersion: v2
     appVersion: 3.5.3
-    created: "2025-12-09T14:01:54.680695323Z"
+    created: "2025-12-09T14:16:16.23990609Z"
     dependencies:
     - alias: minio
       condition: minio.enabled
@@ -2969,7 +2989,7 @@ entries:
       version: 0.30.0
     description: Helm chart for Grafana Loki and Grafana Enterprise Logs supporting
       monolithic, simple scalable, and microservices modes.
-    digest: 11ee214fafc5b3d010270452d56e6982afaeee8cb9b0294a681b1ca1166b4711
+    digest: 2577f4e862c52a6c90ad5252b1617a900dedd7e28201c4be4c280d5749c19659
     home: https://grafana.github.io/helm-charts
     icon: https://grafana.com/docs/loki/latest/logo_and_name.png
     maintainers:
@@ -3056,11 +3076,11 @@ entries:
   nginx-ingress:
   - apiVersion: v1
     appVersion: v0.34.1
-    created: "2025-12-09T14:01:54.682371367Z"
+    created: "2025-12-09T14:16:16.241816918Z"
     deprecated: true
     description: DEPRECATED! An nginx Ingress controller that uses ConfigMap to store
       the nginx configuration.
-    digest: 446ab735c79e50d3df6236b289ede33bd972764a6e2a11ff266f3de63c928dbf
+    digest: b86fe52d00436dd7b12fac4f88c2649fe768b2614f423a7726be7755cf51d83e
     home: https://github.com/kubernetes/ingress-nginx
     icon: https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Nginx_logo.svg/500px-Nginx_logo.svg.png
     keywords:
@@ -3148,7 +3168,7 @@ entries:
       category: Database
     apiVersion: v2
     appVersion: 15.1.0
-    created: "2025-12-09T14:01:54.686301759Z"
+    created: "2025-12-09T14:16:16.246161755Z"
     dependencies:
     - name: common
       repository: https://charts.bitnami.com/bitnami
@@ -3158,7 +3178,7 @@ entries:
     description: PostgreSQL (Postgres) is an open source object-relational database
       known for reliability and data integrity. ACID-compliant, it supports foreign
       keys, joins, views, triggers and stored procedures.
-    digest: 732869955c07f83fb28851521c1f62dd867ebcd51411a44ba03ba7fca07c4a27
+    digest: 38e599011b06ac77f8cd00aee132624de9f18e2429401af024005e08289fdf95
     home: https://github.com/bitnami/charts/tree/main/bitnami/postgresql
     icon: https://bitnami.com/assets/stacks/postgresql/img/postgresql-stack-220x234.png
     keywords:
@@ -3251,7 +3271,7 @@ entries:
       category: Infrastructure
     apiVersion: v2
     appVersion: 3.11.4
-    created: "2025-12-09T14:01:54.693169969Z"
+    created: "2025-12-09T14:16:16.249655733Z"
     dependencies:
     - name: common
       repository: https://charts.bitnami.com/bitnami
@@ -3261,7 +3281,7 @@ entries:
     description: RabbitMQ is an open source general-purpose message broker that is
       designed for consistent, highly-available messaging scenarios (both synchronous
       and asynchronous).
-    digest: 5b3b151651bac58e4f5e066778b248c5ade94f84291b07b56d508441a331c6a8
+    digest: 97abbc6b18739f3c982e3e476d4fd9588a39cc1df06118704771031d55fc580a
     home: https://github.com/bitnami/charts/tree/main/bitnami/rabbitmq
     icon: https://bitnami.com/assets/stacks/rabbitmq/img/rabbitmq-stack-220x234.png
     keywords:
@@ -3345,7 +3365,7 @@ entries:
     version: 0.11.2
   - apiVersion: v2
     appVersion: 3.0.1
-    created: "2025-12-09T14:01:54.713764075Z"
+    created: "2025-12-09T14:16:16.269182903Z"
     dependencies:
     - condition: postgresql.enabled
       name: postgresql
@@ -3357,7 +3377,7 @@ entries:
       version: 17.9.4
     description: Apache Superset is a modern, enterprise-ready business intelligence
       web application
-    digest: 113301f5ed0075c94437bf9fd897e750afbb877ee2f09d8ffd4ae9b5c80e3076
+    digest: 7778ec6885d7d6a84eea0a517fec544f8a50da317255317f4b8789e0397a096c
     home: https://superset.apache.org/
     icon: https://artifacthub.io/image/68c1d717-0e97-491f-b046-754e46f46922@2x
     keywords:
@@ -3422,10 +3442,10 @@ entries:
   trino:
   - apiVersion: v2
     appVersion: "432"
-    created: "2025-12-09T14:01:54.714514512Z"
+    created: "2025-12-09T14:16:16.27007629Z"
     description: Fast distributed SQL query engine for big data analytics that helps
       you explore your data universe
-    digest: a1979182e7c85e1e1e02c1dce3914d23877c474c63d4fa34f95d5fa9113a52b7
+    digest: 69a9ed9866a3f3e559792621fe0bd348cdb612aa48150c41f04fad816976fe73
     home: https://trino.io/
     icon: https://trino.io/assets/trino.png
     maintainers:
@@ -3492,4 +3512,4 @@ entries:
     urls:
     - https://flitz-be.github.io/helm-charts/trino-0.8.0.tgz
     version: 0.8.0
-generated: "2025-12-09T14:01:54.590158838Z"
+generated: "2025-12-09T14:16:16.150274906Z"
