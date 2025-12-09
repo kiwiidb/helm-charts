@@ -27,14 +27,12 @@ spec:
       initContainers:
         - name: copy-bitcoind-config
           image: busybox
-          command: ['sh', '-c', 'cp /configmap/bitcoin.conf /home/bitcoin/.bitcoin/bitcoin.conf && mkdir -p /root/.bitcoin && ln -sf /home/bitcoin/.bitcoin/bitcoin.conf /root/.bitcoin/bitcoin.conf']
+          command: ['sh', '-c', 'cp /configmap/bitcoin.conf /home/bitcoin/.bitcoin/bitcoin.conf']
           volumeMounts:
             - name: configmap
               mountPath: /configmap
             - name: config
               mountPath: /home/bitcoin/.bitcoin/
-            - name: data
-              mountPath: /home/bitcoin
       {{- end }}
       containers:
         - name: {{ template "bitcoind.fullname" . }}
@@ -61,6 +59,9 @@ spec:
             {{- if .Values.configurationFile }}
             - name: config
               mountPath: /home/bitcoin/.bitcoin/bitcoin.conf
+              subPath: bitcoin.conf
+            - name: config
+              mountPath: /root/.bitcoin/bitcoin.conf
               subPath: bitcoin.conf
             {{- end }}
         {{- if .Values.miningCronjob.enabled }}
